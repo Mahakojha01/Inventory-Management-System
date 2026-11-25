@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StockFlow — Inventory &amp; Sales Management</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">SF</div>
+      <div>
+        <h1>StockFlow Inventory</h1>
+        <p class="subtitle">Product Catalog, Stock Control &amp; Sales Analytics</p>
+      </div>
+    </div>
+    <div class="status-pills">
+      <span id="dbStatus" class="pill">Connecting...</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- KPI Summary Row -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <span class="kpi-label">Total Products</span>
+        <strong id="kpiTotalProducts">0</strong>
+        <span class="kpi-sub">Active catalog SKUs</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Total Units in Stock</span>
+        <strong id="kpiTotalUnits">0</strong>
+        <span class="kpi-sub">Available warehouse inventory</span>
+      </div>
+      <div class="kpi-card alert-card">
+        <span class="kpi-label">Low-Stock Items</span>
+        <strong id="kpiLowStock">0</strong>
+        <span class="kpi-sub">Needs restocking soon</span>
+      </div>
+      <div class="kpi-card success-card">
+        <span class="kpi-label">Top-Selling Product</span>
+        <strong id="kpiTopSeller">-</strong>
+        <span class="kpi-sub">Highest unit sales</span>
+      </div>
+    </section>
+
+    <!-- Main Operations Grid -->
+    <section class="grid-two">
+      <!-- Add / Update Product -->
+      <div class="card">
+        <div class="card-head">
+          <h2>Add or Update Product</h2>
+          <span class="card-desc">Register a new SKU or update existing details</span>
+        </div>
+        <form id="productForm" class="form-grid">
+          <div class="field">
+            <label for="prodId">Product ID</label>
+            <input type="number" id="prodId" placeholder="e.g. 109" required />
+          </div>
+          <div class="field">
+            <label for="prodName">Product Name</label>
+            <input type="text" id="prodName" placeholder="e.g. USB-C Hub" required />
+          </div>
+          <div class="field">
+            <label for="prodCategory">Category</label>
+            <input type="text" id="prodCategory" placeholder="e.g. Accessories" required />
+          </div>
+          <div class="field">
+            <label for="prodPrice">Unit Price (₹)</label>
+            <input type="number" step="0.01" id="prodPrice" placeholder="e.g. 1999.00" required />
+          </div>
+          <div class="field">
+            <label for="prodQty">Initial Stock Qty</label>
+            <input type="number" id="prodQty" placeholder="e.g. 25" required />
+          </div>
+          <div class="field">
+            <label for="prodThreshold">Low-Stock Alert Limit</label>
+            <input type="number" id="prodThreshold" value="10" required />
+          </div>
+          <button type="submit" class="btn btn-primary full-span">Save Product</button>
+        </form>
+      </div>
+
+      <!-- Stock-In / Stock-Out -->
+      <div class="card">
+        <div class="card-head">
+          <h2>Stock-In &amp; Stock-Out</h2>
+          <span class="card-desc">Record incoming shipments or customer sales</span>
+        </div>
+        <form id="stockForm" class="form-grid">
+          <div class="field">
+            <label for="stockProdId">Product ID</label>
+            <input type="number" id="stockProdId" placeholder="Enter Product ID" required />
+          </div>
+          <div class="field">
+            <label for="stockAction">Transaction Type</label>
+            <select id="stockAction">
+              <option value="IN">Stock-In (Add Inventory)</option>
+              <option value="OUT">Stock-Out (Record Sale)</option>
+            </select>
+          </div>
+          <div class="field full-span">
+            <label for="stockAmount">Quantity</label>
+            <input type="number" id="stockAmount" min="1" placeholder="Enter units" required />
+          </div>
+          <button type="submit" class="btn btn-accent full-span">Update Stock</button>
+        </form>
+        <p class="hint">Recording a Stock-Out automatically updates total units sold, sales rankings, and low-stock alerts.</p>
+      </div>
+    </section>
+
+    <!-- Search & Inventory Table -->
+    <section class="card">
+      <div class="table-header">
+        <div>
+          <h2>Product Inventory</h2>
+          <span id="searchBadge" class="sub-status">Showing all products</span>
+        </div>
+        <div class="controls">
+          <select id="searchType" aria-label="Search Field">
+            <option value="id">By Product ID</option>
+            <option value="name">By Product Name</option>
+          </select>
+          <input type="text" id="searchInput" placeholder="Search inventory..." />
+          <button id="searchBtn" class="btn btn-primary">Search</button>
+          <button id="resetBtn" class="btn btn-secondary">Reset</button>
+          <select id="sortSelect" aria-label="Sort Products">
+            <option value="id">Sort: Product ID</option>
+            <option value="name">Sort: Name (A–Z)</option>
+            <option value="price">Sort: Price (Low–High)</option>
+            <option value="quantity">Sort: Stock Quantity</option>
+            <option value="sold">Sort: Best Selling</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Product Name</th>
+              <th>Category</th>
+              <th>Unit Price</th>
+              <th>In Stock</th>
+              <th>Alert Limit</th>
+              <th>Units Sold</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Alerts & Best Sellers -->
+    <section class="grid-two">
+      <div class="card">
+        <div class="card-head">
+          <h2>Low-Stock Alerts</h2>
+          <span class="card-desc">Items at or below minimum threshold</span>
+        </div>
+        <ul id="lowStockList" class="ranked-list"></ul>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h2>Best-Selling Products</h2>
+          <span class="card-desc">Top performers ranked by units sold</span>
+        </div>
+        <ul id="bestSellerList" class="ranked-list"></ul>
+      </div>
+    </section>
+
+    <!-- Search Speed Benchmark (Clean Analytics Section) -->
+    <section class="card">
+      <div class="table-header">
+        <div>
+          <h2>Search Performance Comparison</h2>
+          <p class="hint">Compare lookup speed across different indexing and search methods on large catalogs.</p>
+        </div>
+        <div class="controls">
+          <select id="benchSize" aria-label="Catalog Size">
+            <option value="5000">5,000 Products</option>
+            <option value="25000" selected>25,000 Products</option>
+            <option value="100000">100,000 Products</option>
+          </select>
+          <button id="runBenchBtn" class="btn btn-primary">Run Speed Test</button>
+        </div>
+      </div>
+      <div id="benchmarkBars" class="bench-container"></div>
+    </section>
+
+    <!-- Stock & Sales History -->
+    <section class="card">
+      <div class="card-head">
+        <h2>Sales &amp; Inventory History</h2>
+        <span class="card-desc">Recent stock movements and catalog updates</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tx #</th>
+              <th>Product ID</th>
+              <th>Product Name</th>
+              <th>Activity</th>
+              <th>Qty Changed</th>
+              <th>Closing Stock</th>
+              <th>Date &amp; Time</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
