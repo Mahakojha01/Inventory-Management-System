@@ -42,19 +42,3 @@ Inventory-Management-System-DSA/
 ├── run.sh                            # One-click compile & run script for Linux/macOS
 └── README.md
 ```
-
-## How to Run on Windows (VS Code / Command Prompt)
-
-### Step 1: Run Immediately (Zero-Config Mode)
-1. Open the extracted `Inventory-Management-System-DSA` folder in **VS Code**.
-2. Open the VS Code Terminal (`Ctrl + ~`) and run:
-   ```bat
-   run.bat
-   ```
-3. Open your browser and go to: **`http://localhost:8080`**
-
-### Step 2: Connect MySQL Database (MySQL Workbench / Shell)
-1. Open **MySQL Workbench** or **MySQL Shell** and execute `sql/schema.sql`.
-2. Download `mysql-connector-j-8.x.x.jar` and place it inside the `lib/` folder.
-3. Update your MySQL username/password in `src/db/DatabaseManager.java` if different from `root` / `root`.
-4. Re-run `run.bat` — the console will confirm `[DB] Connected to MySQL database successfully.`
